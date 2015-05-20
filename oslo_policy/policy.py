@@ -215,6 +215,8 @@ from oslo_policy import _parser
 from oslo_policy.openstack.common import fileutils
 from oslo_policy import opts
 from oslo_policy import _isolation
+from oslo_policy.common import sql as common_sql
+from oslo_policy import sql 
 
 
 LOG = logging.getLogger(__name__)
@@ -222,6 +224,10 @@ LOG = logging.getLogger(__name__)
 
 register = _checks.register
 Check = _checks.Check
+
+
+def initialize(conf):
+    common_sql.initialize(conf)
 
 
 class PolicyNotAuthorized(Exception):
@@ -321,6 +327,8 @@ class Enforcer(object):
                  default_rule=None, use_conf=True, overwrite=True):
         self.conf = conf
         opts._register(conf)
+        initialize(conf)
+        self.policy_api = sql.Backend(conf)
 
         self.default_rule = (default_rule or
                              self.conf.oslo_policy.policy_default_rule)
