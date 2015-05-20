@@ -40,6 +40,11 @@ _options = [
                       'be the same across the whole Cloud, and should NOT '
                       'be changed after db_sync.')
                ),
+    cfg.StrOpt('policy_conn',
+               help='SQLAlchemy connection string used to connect to the '
+                    'policy database.',
+               secret=True
+               ),
 ]
 
 

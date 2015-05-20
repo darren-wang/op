@@ -83,17 +83,17 @@ class Backend(object):
 
     def get_policy(self, policy_id):
         with sql.transaction(self.conf) as session:
-            ref = session.query(Policy).get(policy_id)
-            if not ref:
+            policy_ref = session.query(Policy).get(policy_id)
+            if not policy_ref:
                 raise exception.PolicyNotFound(policy_id=policy_id)
-        return self._get_policy(session, policy_id).to_dict()
+        return policy_ref.to_dict()
 
     def get_project(self, project_id):
         with sql.transaction(self.conf) as session:
             project_ref = session.query(Project).get(project_id)
             if project_ref is None:
                 raise exception.ProjectNotFound(project_id=project_id)
-            return self._get_project(session, project_id).to_dict()
+            return project_ref.to_dict()
 
     def get_project_by_name(self, project_name, domain_id):
         with sql.transaction(self.conf) as session:
@@ -108,16 +108,16 @@ class Backend(object):
 
     def get_domain(self, domain_id):
         with sql.transaction(self.conf) as session:
-            ref = session.query(Domain).get(domain_id)
-            if ref is None:
+            domain_ref = session.query(Domain).get(domain_id)
+            if domain_ref is None:
                 raise exception.DomainNotFound(domain_id=domain_id)
-            return self._get_domain(session, domain_id).to_dict()
+            return domain_ref.to_dict()
 
     def get_domain_by_name(self, domain_name):
         with sql.transaction(self.conf) as session:
             try:
-                ref = (session.query(Domain).
+                domain_ref = (session.query(Domain).
                        filter_by(name=domain_name).one())
             except sql.NotFound:
                 raise exception.DomainNotFound(domain_id=domain_name)
-            return ref.to_dict()
+            return domain_ref.to_dict()

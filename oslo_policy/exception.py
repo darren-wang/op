@@ -16,7 +16,7 @@ from oslo_log import log
 from oslo_utils import encodeutils
 import six
 
-from oslo_policy.i18n import _, _LW
+from oslo_policy._i18n import _, _LW
 
 
 LOG = log.getLogger(__name__)
