@@ -75,7 +75,6 @@ class Backend(object):
         return self._enabled_policies_in_domain(domain_id)
     
     def _enabled_policies_in_domain(self, domain_id):
-        
         with sql.transaction(self.conf) as session:
             query = session.query(Policy)
             policy_refs = query.filter_by(domain_id=domain_id,

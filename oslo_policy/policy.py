@@ -445,26 +445,7 @@ class Enforcer(object):
 
         raise cfg.ConfigFilesNotFoundError((path,))
 
-    def isol_enforce(self, rule, target, creds, do_raise=False,
-                     exc=None, *args, **kwargs):
-        if not self.isol_rules:
-            LOG.warning('IsolationRules does not exist')
-            result = False
-        else:
-            try:
-                result = self.isol_rules[rule](target, creds, self.isol_rules)
-            except KeyError:
-                LOG.debug('IsolationRule [%s] does not exist' % rule)
-                result = False
-
-        if do_raise and not result:
-            if exc:
-                raise exc(*args, **kwargs)
-            raise PolicyNotAuthorized(rule, target, creds)
-
-        return result
-        
-    def enforce(self, rule, target, creds, rule_dict=None, do_raise=False,
+    def _enforce(self, rule, target, creds, rule_dict=None, do_raise=False,
                 exc=None, *args, **kwargs):
         """Checks authorization of a rule against the target and credentials.
 
@@ -490,15 +471,17 @@ class Enforcer(object):
         """
 
         # Allow the rule to be a Check tree. In this situation, there should NOT
-        # be any "rule:" reference in param rule.
+        # be any "rule:" reference in param rule passed in.
         if isinstance(rule, _checks.BaseCheck):
             result = rule(target, creds, {})
+        
         elif rule_dict:
             try:
                 result = rule_dict[rule](target, creds, rule_dict)
             except KeyError:
                 LOG.debug('Rule [%s] does not exist' % rule)
                 result = False
+        
         else:
             self.load_rules()
             if not self.rules:
@@ -521,3 +504,35 @@ class Enforcer(object):
             raise PolicyNotAuthorized(rule, target, creds)
 
         return result
+
+    def enforce(self, rule, target, creds, domain=None, **kwargs):
+        if domain == 'isolation':
+            return self._enforce(rule, target, creds,
+                                 rule_dict=self.isol_rules,
+                                 **kwargs)
+
+        elif domain == 'admin_domain':
+            return self._enforce(rule, target, creds,
+                                 **kwargs)
+
+        else:
+            rules = self.policy_api.enabled_policies_in_domain(domain)
+            # (Darren) Backend will handle the situation where target
+            # domain does not exist.
+            if len(rules)>0:
+                rule_dict = jsonutils.loads(rules[0]['blob'])
+                if 'default' not in rule_dict:
+                    rule_dict.update({'default':'role:admin'})
+                rule_dict = Rules.from_dict(rule_dict, 'default')
+                self._enforce(rule, target, creds,
+                              rule_dict=rule_dict,
+                              **kwargs)
+            else:
+                LOG.warning('Tenant domain has no enabled policy, using '
+                            'default RBAC policy. Upload policy to '
+                            'enforce RBAC in tenant domain.')
+                rule_dict = {'default':'role:admin'}
+                rule_dict = Rules.from_dict(rule_dict, 'default')
+                self._enforce(action, target, creds,
+                              rule_dict=rule_dict,
+                              **kwargs)
