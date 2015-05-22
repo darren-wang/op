@@ -213,45 +213,6 @@ def _parse_check(rule):
         return _checks.FalseCheck()
 
 
-def _parse_list_rule(rule):
-    """Translates the old list-of-lists syntax into a tree of Check objects.
-
-    Provided for backwards compatibility.
-    """
-
-    # Empty rule defaults to True
-    if not rule:
-        return _checks.TrueCheck()
-
-    # Outer list is joined by "or"; inner list by "and"
-    or_list = []
-    for inner_rule in rule:
-        # Skip empty inner lists
-        if not inner_rule:
-            continue
-
-        # Handle bare strings
-        if isinstance(inner_rule, six.string_types):
-            inner_rule = [inner_rule]
-
-        # Parse the inner rules into Check objects
-        and_list = [_parse_check(r) for r in inner_rule]
-
-        # Append the appropriate check to the or_list
-        if len(and_list) == 1:
-            or_list.append(and_list[0])
-        else:
-            or_list.append(_checks.AndCheck(and_list))
-
-    # If we have only one check, omit the "or"
-    if not or_list:
-        return _checks.FalseCheck()
-    elif len(or_list) == 1:
-        return or_list[0]
-
-    return _checks.OrCheck(or_list)
-
-
 # Used for tokenizing the policy language
 _tokenize_re = re.compile(r'\s+')
 
@@ -305,7 +266,7 @@ def _parse_tokenize(rule):
             yield ')', ')'
 
 
-def _parse_text_rule(rule):
+def parse_rule(rule):
     """Parses policy to the tree.
 
     Translates a policy written in the policy language into a tree of
@@ -329,12 +290,3 @@ def _parse_text_rule(rule):
 
         # Fail closed
         return _checks.FalseCheck()
-
-
-def parse_rule(rule):
-    """Parses a policy rule into a tree of :class:`.Check` objects."""
-
-    # If the rule is a string, it's in the policy language
-    if isinstance(rule, six.string_types):
-        return _parse_text_rule(rule)
-    return _parse_list_rule(rule)
