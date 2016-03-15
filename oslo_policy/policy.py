@@ -214,7 +214,8 @@ from oslo_policy._i18n import _
 from oslo_policy import _parser
 from oslo_policy.openstack.common import fileutils
 from oslo_policy import opts
-from oslo_policy import _isolation
+from oslo_policy import _default_domain
+from oslo_policy import _system
 from oslo_policy.common import sql as common_sql
 from oslo_policy import sql 
 
@@ -333,8 +334,11 @@ class Enforcer(object):
         self.default_rule = (default_rule or
                              self.conf.oslo_policy.policy_default_rule)
         self.rules = Rules(rules, self.default_rule)
-        self.isol_rules = _isolation.IsolationRules(conf).isol_rules
+        self.isol_rules = _system.IsolationRules(conf).isol_rules
         self.isol_rules = Rules.from_dict(self.isol_rules, 'default')
+
+        self.dflt_rules = _default_domain.DefaultRules().dflt_rules
+        self.dflt_rules = Rules.from_dict(self.dflt_rules, 'default')
 
         self.policy_path = None
 
@@ -505,14 +509,10 @@ class Enforcer(object):
 
         return result
 
-    def enforce(self, rule, target, creds, domain=None, **kwargs):
-        if domain == 'isolation':
+    def enforce(self, rule, target, creds, check_type='system', **kwargs):
+        if check_type == 'system':
             return self._enforce(rule, target, creds,
                                  rule_dict=self.isol_rules,
-                                 **kwargs)
-
-        elif domain == 'admin_domain':
-            return self._enforce(rule, target, creds,
                                  **kwargs)
 
         else:
