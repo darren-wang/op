@@ -25,26 +25,16 @@ from oslo_policy._i18n import _
 _option_group = 'oslo_policy'
 
 _options = [
-    cfg.StrOpt('policy_file',
-               default='policy.json',
-               help=_('The JSON file that defines policies.'),
-               deprecated_group='DEFAULT'),
-    cfg.StrOpt('policy_default_rule',
-               default='default',
-               help=_('Default rule. Enforced when a requested rule is not '
-                      'found.'),
-               deprecated_group='DEFAULT'),
-    cfg.StrOpt('admin_domain_id',
-               default='CSP_Domain',
-               help=_('Domain of Cloud Service Provider. This value should '
-                      'be the same across the whole Cloud, and should NOT '
-                      'be changed after db_sync.')
+    cfg.StrOpt('CSP_domain_id',
+               default=None,
+               help=_("Domain of Cloud Service Provider's. This value should"
+                      " be the same across the whole Cloud.")
                ),
-    cfg.StrOpt('policy_conn',
+    cfg.StrOpt('policy_connection',
                help='SQLAlchemy connection string used to connect to the '
                     'policy database.',
                secret=True
-               ),
+               )
 ]
 
 

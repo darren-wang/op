@@ -22,17 +22,28 @@ LOG = log.getLogger(__name__)
 
 class Policy(sql.ModelBase, sql.DictBase):
     __tablename__ = 'policy'
-    attributes = ['id', 'blob', 'name', 'enabled',
-                  'description', 'domain_id']
+    attributes = ['description', 'domain_id', 'enabled', 'id', 'name']
     id = sql.Column(sql.String(64), primary_key=True)
-    blob = sql.Column(sql.JsonBlob(), nullable=False)
     name = sql.Column(sql.String(64), nullable=False)
     domain_id = sql.Column(sql.String(64), sql.ForeignKey('domain.id'),
                            nullable=False)
     enabled = sql.Column(sql.Boolean, default=False, nullable=False)
-    description = sql.Column(sql.Text())
-    extra = sql.Column(sql.JsonBlob())
+    description = sql.Column(sql.Text(), nullable=True)
     __table_args__ = (sql.UniqueConstraint('domain_id', 'name'), {})
+
+
+class Rule(sql.ModelBase, sql.DictBase):
+    __tablename__ = 'rule'
+    attributes = ['id', 'policy_id', 'service', 'permission', 'condition']
+    id = sql.Column(sql.String(64), primary_key=True)
+    policy_id = sql.Column(sql.String(64), sql.ForeignKey('policy.id'),
+                           nullable=False)
+    service = sql.Column(sql.String(64), nullable=False)
+    permission = sql.Column(sql.String(64), nullable=False)
+    condition = sql.Column(sql.JsonBlob(), nullable=True)
+    __table_args__ = (sql.UniqueConstraint('policy_id', 'service',
+                                           'permission'), {})
+
 
 class Domain(sql.ModelBase, sql.DictBase):
     __tablename__ = 'domain'
@@ -45,79 +56,44 @@ class Domain(sql.ModelBase, sql.DictBase):
     __table_args__ = (sql.UniqueConstraint('name'), {})
 
 
-class Project(sql.ModelBase, sql.DictBase):
-    __tablename__ = 'project'
-    attributes = ['id', 'name', 'domain_id', 'description', 'enabled',
-                  'parent_id']
-    id = sql.Column(sql.String(64), primary_key=True)
-    name = sql.Column(sql.String(64), nullable=False)
-    domain_id = sql.Column(sql.String(64), sql.ForeignKey('domain.id'),
-                           nullable=False)
-    description = sql.Column(sql.Text())
-    enabled = sql.Column(sql.Boolean)
-    extra = sql.Column(sql.JsonBlob())
-    parent_id = sql.Column(sql.String(64), sql.ForeignKey('project.id'))
-    # Unique constraint across two columns to create the separation
-    # rather than just only 'name' being unique
-    __table_args__ = (sql.UniqueConstraint('domain_id', 'name'), {})
-
-
 class Backend(object):
 
     def __init__(self, conf):
         self.conf = conf
 
-    def enabled_policies_in_domain(self, domain_id):
+    def enabled_policy_in_domain(self, domain_id):
         try:
             self.get_domain(domain_id)
         except exception.DomainNotFound:
             raise
         return self._enabled_policies_in_domain(domain_id)
     
-    def _enabled_policies_in_domain(self, domain_id):
+    def _enabled_policy_in_domain(self, domain_id):
         with sql.transaction(self.conf) as session:
             query = session.query(Policy)
-            policy_refs = query.filter_by(domain_id=domain_id,
-                                          enabled=True)
-            return [policy_ref.to_dict() for policy_ref in policy_refs]
+            policy_ref = query.filter_by(domain_id=domain_id,
+                                         enabled=True)
+            return policy_ref.to_dict()
 
-    def get_policy(self, policy_id):
+    def get_rule(self, p_id, serv, perm):
+        """
+        :param p_id: ID of the policy in which we are searching for rule
+        :param serv: specifying target service, e.g. 'keystone'. 
+        :param perm: specifying target permission, e.g. 'create_domain'
+        :return: dict of target rule if it exists, or raise RuleNotFound 
+                 otherwise.
+        """ 
         with sql.transaction(self.conf) as session:
-            policy_ref = session.query(Policy).get(policy_id)
-            if not policy_ref:
-                raise exception.PolicyNotFound(policy_id=policy_id)
-        return policy_ref.to_dict()
-
-    def get_project(self, project_id):
-        with sql.transaction(self.conf) as session:
-            project_ref = session.query(Project).get(project_id)
-            if project_ref is None:
-                raise exception.ProjectNotFound(project_id=project_id)
-            return project_ref.to_dict()
-
-    def get_project_by_name(self, project_name, domain_id):
-        with sql.transaction(self.conf) as session:
-            query = session.query(Project)
-            query = query.filter_by(name=project_name)
-            query = query.filter_by(domain_id=domain_id)
-            try:
-                project_ref = query.one()
-            except sql.NotFound:
-                raise exception.ProjectNotFound(project_id=project_name)
-            return project_ref.to_dict()
+            rule_ref = (session.query(Rule).
+                        filter_by(policy_id=p_id, service=serv,
+                                  permission=perm).one())
+            if not rule_ref:
+                raise exception.RuleNotFound(p_id=p_id, serv=serv, perm=perm)
+        return rule_ref.to_dict()
 
     def get_domain(self, domain_id):
         with sql.transaction(self.conf) as session:
             domain_ref = session.query(Domain).get(domain_id)
             if domain_ref is None:
                 raise exception.DomainNotFound(domain_id=domain_id)
-            return domain_ref.to_dict()
-
-    def get_domain_by_name(self, domain_name):
-        with sql.transaction(self.conf) as session:
-            try:
-                domain_ref = (session.query(Domain).
-                       filter_by(name=domain_name).one())
-            except sql.NotFound:
-                raise exception.DomainNotFound(domain_id=domain_name)
             return domain_ref.to_dict()

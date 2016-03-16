@@ -217,7 +217,8 @@ from oslo_policy import opts
 from oslo_policy import _default_domain
 from oslo_policy import _system
 from oslo_policy.common import sql as common_sql
-from oslo_policy import sql 
+from oslo_policy import sql
+from oslo_policy import exception
 
 
 LOG = logging.getLogger(__name__)
@@ -246,10 +247,13 @@ class Rules(dict):
     @classmethod
     def load_json(cls, data, default_rule=None):
         """Allow loading of JSON rule data."""
-
-        # Suck in the JSON data and parse the rules
-        rules = dict((k, _parser.parse_rule(v)) for k, v in
-                     jsonutils.loads(data).items())
+        data = jsonutils.loads(data)
+        
+        # Parse the rules stored in  JSON data loaded
+        rules = {}
+        for serv in data.iterkeys():
+            rules[serv] = dict((k, _parser.parse_rule(v)) 
+                               for k, v in data[serv].items())
 
         return cls(rules, default_rule)
 
@@ -258,7 +262,10 @@ class Rules(dict):
         """Allow loading of rule data from a dictionary."""
 
         # Parse the rules stored in the dictionary
-        rules = dict((k, _parser.parse_rule(v)) for k, v in rules_dict.items())
+        rules = {}
+        for serv in rules_dict.iterkeys():
+            rules[serv] = dict((k, _parser.parse_rule(v)) 
+                               for k, v in rules_dict[serv].items()) 
 
         return cls(rules, default_rule)
 
@@ -324,130 +331,20 @@ class Enforcer(object):
                       from config file.
     """
 
-    def __init__(self, conf, policy_file=None, rules=None,
-                 default_rule=None, use_conf=True, overwrite=True):
+    def __init__(self, conf, rules=None, default_rule=None,
+                 use_conf=True, overwrite=True):
         self.conf = conf
         opts._register(conf)
         initialize(conf)
-        self.policy_api = sql.Backend(conf)
 
-        self.default_rule = (default_rule or
-                             self.conf.oslo_policy.policy_default_rule)
-        self.rules = Rules(rules, self.default_rule)
-        self.isol_rules = _system.IsolationRules(conf).isol_rules
-        self.isol_rules = Rules.from_dict(self.isol_rules, 'default')
+        self.policy_api = sql.Backend(conf)
+        
+        default_rule = 'role:domain_admin'
+        self.sys_rules = _system.IsolationRules(conf).sys_rules
+        self.sys_rules = Rules.from_dict(self.sys_rules, default_rule)
 
         self.dflt_rules = _default_domain.DefaultRules().dflt_rules
-        self.dflt_rules = Rules.from_dict(self.dflt_rules, 'default')
-
-        self.policy_path = None
-
-        self.policy_file = policy_file or self.conf.oslo_policy.policy_file
-        self.use_conf = use_conf
-        self.overwrite = overwrite
-        self._loaded_files = []
-        self._policy_dir_mtimes = {}
-
-    def set_rules(self, rules, overwrite=True, use_conf=False):
-        """Create a new :class:`Rules` based on the provided dict of rules.
-
-        :param dict rules: New rules to use.
-        :param overwrite: Whether to overwrite current rules or update them
-                          with the new rules.
-        :param use_conf: Whether to reload rules from cache or config file.
-        """
-
-        if not isinstance(rules, dict):
-            raise TypeError(_('Rules must be an instance of dict or Rules, '
-                            'got %s instead') % type(rules))
-        self.use_conf = use_conf
-        if overwrite:
-            self.rules = Rules(rules, self.default_rule)
-        else:
-            self.rules.update(rules)
-
-    def clear(self):
-        """Clears :class:`Enforcer` rules, policy's cache and policy's path."""
-        self.set_rules({})
-        fileutils.delete_cached_file(self.policy_path)
-        self.default_rule = None
-        self.policy_path = None
-        self._loaded_files = []
-        self._policy_dir_mtimes = {}
-
-    def load_rules(self, force_reload=False):
-        """Loads policy_path's rules.
-
-        Policy file is cached and will be reloaded if modified.
-
-        :param force_reload: Whether to reload rules from config file.
-        """
-
-        if force_reload:
-            self.use_conf = force_reload
-
-        if self.use_conf:
-            if not self.policy_path:
-                self.policy_path = self._get_policy_path(self.policy_file)
-
-            self._load_policy_file(self.policy_path, force_reload,
-                                   overwrite=self.overwrite)
-
-    @staticmethod
-    def _is_directory_updated(cache, path):
-        # Get the current modified time and compare it to what is in
-        # the cache and check if the new mtime is greater than what
-        # is in the cache
-        mtime = 0
-        if os.path.exists(path):
-            # Make a list of all the files
-            files = [path] + [os.path.join(path, file) for file in
-                              os.listdir(path)]
-            # Pick the newest one, let's use its time.
-            mtime = os.path.getmtime(max(files, key=os.path.getmtime))
-        cache_info = cache.setdefault(path, {})
-        if mtime > cache_info.get('mtime', 0):
-            cache_info['mtime'] = mtime
-            return True
-        return False
-
-    @staticmethod
-    def _walk_through_policy_directory(path, func, *args):
-        # We do not iterate over sub-directories.
-        policy_files = next(os.walk(path))[2]
-        policy_files.sort()
-        for policy_file in [p for p in policy_files if not p.startswith('.')]:
-            func(os.path.join(path, policy_file), *args)
-
-    def _load_policy_file(self, path, force_reload, overwrite=True):
-            reloaded, data = fileutils.read_cached_file(
-                path, force_reload=force_reload)
-            if reloaded or not self.rules or not overwrite:
-                rules = Rules.load_json(data, self.default_rule)
-                self.set_rules(rules, overwrite=overwrite, use_conf=True)
-                self._loaded_files.append(path)
-                LOG.debug('Reloaded policy file: %(path)s',
-                          {'path': path})
-
-    def _get_policy_path(self, path):
-        """Locate the policy JSON data file/path.
-
-        :param path: It's value can be a full path or related path. When
-                     full path specified, this function just returns the full
-                     path. When related path specified, this function will
-                     search configuration directories to find one that exists.
-
-        :returns: The policy path
-
-        :raises: ConfigFilesNotFoundError if the file/path couldn't
-                 be located.
-        """
-        policy_path = self.conf.find_file(path)
-
-        if policy_path:
-            return policy_path
-
-        raise cfg.ConfigFilesNotFoundError((path,))
+        self.dflt_rules = Rules.from_dict(self.dflt_rules, default_rule)
 
     def _enforce(self, rule, target, creds, rule_dict=None, do_raise=False,
                 exc=None, *args, **kwargs):
@@ -478,61 +375,57 @@ class Enforcer(object):
         # be any "rule:" reference in param rule passed in.
         if isinstance(rule, _checks.BaseCheck):
             result = rule(target, creds, {})
-        
+
         elif rule_dict:
             try:
-                result = rule_dict[rule](target, creds, rule_dict)
+                serv = rule[0]
+                perm = rule[1]
+                result = rule_dict[serv][perm](target, creds, rule_dict[serv])
             except KeyError:
                 LOG.debug('Rule [%s] does not exist' % rule)
                 result = False
-        
+
         else:
-            self.load_rules()
-            if not self.rules:
-                # No rules to reference means we're going to fail closed
-                result = False
-            else:
-                try:
-                    # Evaluate the rule
-                    result = self.rules[rule](target, creds, self.rules)
-                except KeyError:
-                    LOG.debug('Rule [%s] does not exist' % rule)
-                    # If the rule doesn't exist, fail closed
-                    result = False
+            LOG.debug('Wrong execution path, Rule [%s] does not exist' % rule)
+            result = False
 
         # If it is False, raise the exception if requested
         if do_raise and not result:
             if exc:
                 raise exc(*args, **kwargs)
-
             raise PolicyNotAuthorized(rule, target, creds)
 
         return result
 
-    def enforce(self, rule, target, creds, check_type='system', **kwargs):
+    def enforce(self, action, target, creds, check_type='system', **kwargs):
+        # System-level authorization 
         if check_type == 'system':
-            return self._enforce(rule, target, creds,
-                                 rule_dict=self.isol_rules,
-                                 **kwargs)
+            return self._enforce(action, target, creds,
+                                 rule_dict=self.sys_rules, **kwargs)
 
+        # Domain-level authorization
         else:
-            rules = self.policy_api.enabled_policies_in_domain(domain)
-            # (Darren) Backend will handle the situation where target
-            # domain does not exist.
-            if len(rules)>0:
-                rule_dict = jsonutils.loads(rules[0]['blob'])
-                if 'default' not in rule_dict:
-                    rule_dict.update({'default':'role:admin'})
-                rule_dict = Rules.from_dict(rule_dict, 'default')
-                self._enforce(rule, target, creds,
-                              rule_dict=rule_dict,
-                              **kwargs)
-            else:
+            domain_id = creds['scope.domain_id'] 
+            try:
+                p_dict = self.policy_api.enabled_policy_in_domain(domain_id)
+                try:
+                    r_dict = self.policy_api.get_rule(p_dict['id'],
+                                                      action[0], action[1])
+                    rule = _parser.parse_rule(r_dict['condition'])
+                    self._enforce(rule, target, creds, **kwargs)
+
+                # Found an enabled policy in the target domain,
+                # but no corresponding rule.
+                except exception.RuleNotFound:
+                    LOG.warning('Tenant domain has an enabled policy, but '
+                            'rule on target service and permission has not '
+                            'been specified. Using the default policy.')
+                    self._enforce(action, target, creds,
+                                  rule_dict=self.dflt_rules, **kwargs)
+
+            # Found no enabled policy in the target domain,
+            except exception.PolicyNotFound:       
                 LOG.warning('Tenant domain has no enabled policy, using '
-                            'default RBAC policy. Upload policy to '
-                            'enforce RBAC in tenant domain.')
-                rule_dict = {'default':'role:admin'}
-                rule_dict = Rules.from_dict(rule_dict, 'default')
+                            'the default policy.')
                 self._enforce(action, target, creds,
-                              rule_dict=rule_dict,
-                              **kwargs)
+                              rule_dict=self.dflt_rules, **kwargs)

@@ -112,6 +112,11 @@ class PolicyNotFound(NotFound):
     message_format = _("Could not find policy: %(policy_id)s")
 
 
+class RuleNotFound(NotFound):
+    message_format = _("Could not find rule: policy(%(p_id)s),"
+        "service(%(serv)s), permission(%(perm)s)")
+
+
 class RoleNotFound(NotFound):
     message_format = _("Could not find role: %(role_id)s")
 
@@ -124,10 +129,6 @@ class RoleAssignmentNotFound(NotFound):
 
 class DomainNotFound(NotFound):
     message_format = _("Could not find domain: %(domain_id)s")
-
-
-class ProjectNotFound(NotFound):
-    message_format = _("Could not find project: %(project_id)s")
 
 
 class Conflict(Error):

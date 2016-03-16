@@ -51,7 +51,7 @@ def initialize(conf):
     """Initialize the module."""
     
     connection="sqlite:///keystone.db"
-    conf.set_default('policy_conn', connection, group='oslo_policy')
+    conf.set_default('policy_connection', connection, group='oslo_policy')
 
 
 def initialize_decorator(init):
@@ -140,7 +140,8 @@ def _get_engine_facade(conf):
     global _engine_facade
 
     if not _engine_facade:
-        _engine_facade = db_session.EngineFacade(conf.oslo_policy.policy_conn)
+        _engine_facade = db_session.EngineFacade(
+                                        conf.oslo_policy.policy_connection)
 
     return _engine_facade
 
