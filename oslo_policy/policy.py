@@ -340,7 +340,7 @@ class Enforcer(object):
         self.policy_api = sql.Backend(conf)
         
         default_rule = 'role:domain_admin'
-        self.sys_rules = _system.IsolationRules(conf).sys_rules
+        self.sys_rules = _system.SystemRules(conf).sys_rules
         self.sys_rules = Rules.from_dict(self.sys_rules, default_rule)
 
         self.dflt_rules = _default_domain.DefaultRules().dflt_rules

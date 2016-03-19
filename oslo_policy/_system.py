@@ -4,9 +4,9 @@
 # release to verify if the attributes used here are available.
 # 2. Even the attributes are available, the rules defined here may not be enough
 # to provide desirable domain(tenant) isolation.
-class IsolationRules(object):
+class SystemRules(object):
     def __init__(self, conf):
-        self.isol_rules = {
+        self.sys_rules = {
         # generic
             # The Syetem developer must ensure that: All the actions need
             # to be isolated are listed here.
