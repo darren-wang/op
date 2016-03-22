@@ -66,10 +66,10 @@ class SystemRules(object):
             "list_projects_for_groups": "",
             "list_domains_for_groups": "",
         # grant(it's very loose)
-            "check_grant": "scope_project_id:%(url.project_id)s or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)))",
-            "list_grants": "scope_project_id:%(url.project_id)s or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)))",
-            "create_grant": "scope_project_id:%(url.project_id)s or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)))",
-            "revoke_grant": "scope_project_id:%(url.project_id)s or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)))",
+            "check_grant": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)s))",
+            "list_grants": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)s))",
+            "create_grant": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)s))",
+            "revoke_grant": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(url.domain_id)s or scope_domain_id:%(obj.project.domain_id)s))",
         # role assignment
             "list_role_assignments": "user_id:%(user.id)s or scope_domain_id:%(qStr.domain_id)s or scope_project_id:%(qStr.project_id)s",
         # token
