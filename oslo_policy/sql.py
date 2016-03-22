@@ -15,7 +15,6 @@
 from oslo_policy.common import sql
 from oslo_policy import exception
 from oslo_log import log
-from openstackclient.tests.identity.v3.fakes import domain_id
 
 
 LOG = log.getLogger(__name__)
