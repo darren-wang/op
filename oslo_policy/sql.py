@@ -15,6 +15,7 @@
 from oslo_policy.common import sql
 from oslo_policy import exception
 from oslo_log import log
+from openstackclient.tests.identity.v3.fakes import domain_id
 
 
 LOG = log.getLogger(__name__)
@@ -61,39 +62,37 @@ class Backend(object):
     def __init__(self, conf):
         self.conf = conf
 
-    def enabled_policy_in_domain(self, domain_id):
-        try:
-            self.get_domain(domain_id)
-        except exception.DomainNotFound:
-            raise
-        return self._enabled_policies_in_domain(domain_id)
-    
-    def _enabled_policy_in_domain(self, domain_id):
-        with sql.transaction(self.conf) as session:
-            query = session.query(Policy)
-            policy_ref = query.filter_by(domain_id=domain_id,
-                                         enabled=True)
-            return policy_ref.to_dict()
-
-    def get_rule(self, p_id, serv, perm):
-        """
-        :param p_id: ID of the policy in which we are searching for rule
-        :param serv: specifying target service, e.g. 'keystone'. 
-        :param perm: specifying target permission, e.g. 'create_domain'
-        :return: dict of target rule if it exists, or raise RuleNotFound 
-                 otherwise.
-        """ 
-        with sql.transaction(self.conf) as session:
-            rule_ref = (session.query(Rule).
-                        filter_by(policy_id=p_id, service=serv,
-                                  permission=perm).one())
-            if not rule_ref:
-                raise exception.RuleNotFound(p_id=p_id, serv=serv, perm=perm)
-        return rule_ref.to_dict()
-
-    def get_domain(self, domain_id):
+    def _get_domain(self, domain_id):
         with sql.transaction(self.conf) as session:
             domain_ref = session.query(Domain).get(domain_id)
             if domain_ref is None:
                 raise exception.DomainNotFound(domain_id=domain_id)
             return domain_ref.to_dict()
+
+    def _list_policies_in_domain(self, domain_id):
+        self._get_domain(domain_id)
+        with sql.transaction(self.conf) as session:
+            query = session.query(Policy)
+            policy_refs = query.filter_by(domain_id=domain_id)
+            return [policy_ref.to_dict() for policy_ref in policy_refs]
+
+    def get_enabled_policy_in_domain(self, domain_id):
+        policies_ref = self._list_policies_in_domain(domain_id)
+        if policies_ref:
+            for policy_ref in policies_ref:
+                if policy_ref['enabled']:
+                    return policy_ref
+
+    def get_rule(self, policy_id, serv, perm):
+        """
+        :param policy_id: ID of the policy in which we are searching for rule
+        :param serv: target service, e.g. 'keystone'. 
+        :param perm: target permission, e.g. 'create_domain'
+        :return: dict of target rule if it exists, or raise RuleNotFound.
+        """ 
+        with sql.transaction(self.conf) as session:
+            rule_ref = (session.query(Rule).filter_by(policy_id=policy_id,
+                                        service=serv,permission=perm).one())
+            if not rule_ref:
+                raise exception.RuleNotFound(p_id=p_id, serv=serv, perm=perm)
+        return rule_ref.to_dict()

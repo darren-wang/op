@@ -405,17 +405,17 @@ class Enforcer(object):
 
         # Domain-level authorization
         else:
-            domain_id = creds['scope.domain_id'] 
-            try:
-                p_dict = self.policy_api.enabled_policy_in_domain(domain_id)
+            # We can always get scope_domain_id from creds.
+            domain_id = creds['scope_domain_id'] 
+            p_ref = self.policy_api.get_enabled_policy_in_domain(domain_id)
+            if p_ref:
                 try:
-                    r_dict = self.policy_api.get_rule(p_dict['id'],
+                    r_dict = self.policy_api.get_rule(p_ref['id'],
                                                       action[0], action[1])
                     rule = _parser.parse_rule(r_dict['condition'])
                     self._enforce(rule, target, creds, **kwargs)
 
-                # Found an enabled policy in the target domain,
-                # but no corresponding rule.
+                # Found enabled policy but no corresponding rule.
                 except exception.RuleNotFound:
                     LOG.warning('Tenant domain has an enabled policy, but '
                             'rule on target service and permission has not '
@@ -423,8 +423,8 @@ class Enforcer(object):
                     self._enforce(action, target, creds,
                                   rule_dict=self.dflt_rules, **kwargs)
 
-            # Found no enabled policy in the target domain,
-            except exception.PolicyNotFound:       
+            # Found no enabled policy
+            else:       
                 LOG.warning('Tenant domain has no enabled policy, using '
                             'the default policy.')
                 self._enforce(action, target, creds,
