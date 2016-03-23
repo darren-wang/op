@@ -382,7 +382,8 @@ class Enforcer(object):
                 perm = rule[1]
                 result = rule_dict[serv][perm](target, creds, rule_dict[serv])
             except KeyError:
-                LOG.debug('Rule [%s] does not exist' % rule)
+                LOG.debug('Rule [service:%(serv)s, permission:%(perm)s] does'
+                          ' not exist' % {'serv':rule[0], 'perm':rule[1]})
                 result = False
 
         else:
@@ -397,7 +398,7 @@ class Enforcer(object):
 
         return result
 
-    def enforce(self, action, target, creds, check_type='system', **kwargs):
+    def enforce(self, action, target, creds, check_type, **kwargs):
         # System-level authorization 
         if check_type == 'system':
             return self._enforce(action, target, creds,
