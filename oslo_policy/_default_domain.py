@@ -88,6 +88,12 @@ class DefaultRules(object):
             "create_policy": "role:domain_admin",
             "update_policy": "role:domain_admin",
             "delete_policy": "role:domain_admin",
+        # rule
+            "get_rule": "@",
+            "list_rules": "@",
+            "create_rule": "@",
+            "update_rule": "@",
+            "delete_rule": "@",
         # other
             "get_auth_catalog": "",
             "get_auth_projects": "",

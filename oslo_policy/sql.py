@@ -29,6 +29,7 @@ class Policy(sql.ModelBase, sql.DictBase):
                            nullable=False)
     enabled = sql.Column(sql.Boolean, default=False, nullable=False)
     description = sql.Column(sql.Text(), nullable=True)
+    extra = sql.Column(sql.JsonBlob())
     __table_args__ = (sql.UniqueConstraint('domain_id', 'name'), {})
 
 
@@ -41,6 +42,7 @@ class Rule(sql.ModelBase, sql.DictBase):
     service = sql.Column(sql.String(64), nullable=False)
     permission = sql.Column(sql.String(64), nullable=False)
     condition = sql.Column(sql.JsonBlob(), nullable=True)
+    extra = sql.Column(sql.JsonBlob())
     __table_args__ = (sql.UniqueConstraint('policy_id', 'service',
                                            'permission'), {})
 

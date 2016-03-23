@@ -90,6 +90,12 @@ class SystemRules(object):
             "create_policy": "scope:domain and scope_domain_id:%(reqBody.policy.domain_id)s",
             "update_policy": "scope:domain and scope_domain_id:%(obj.policy.domain_id)s",
             "delete_policy": "scope:domain and scope_domain_id:%(obj.policy.domain_id)s",
+        # rule
+            "get_rule": "@",
+            "list_rules": "@",
+            "create_rule": "@",
+            "update_rule": "@",
+            "delete_rule": "@",
         # other
             "get_auth_catalog": "",
             "get_auth_projects": "",
