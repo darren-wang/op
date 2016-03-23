@@ -84,7 +84,7 @@ class Backend(object):
                 if policy_ref['enabled']:
                     return policy_ref
 
-    def get_rule(self, policy_id, serv, perm):
+    def get_rule(self, p_id, serv, perm):
         """
         :param policy_id: ID of the policy in which we are searching for rule
         :param serv: target service, e.g. 'keystone'. 
@@ -92,8 +92,9 @@ class Backend(object):
         :return: dict of target rule if it exists, or raise RuleNotFound.
         """ 
         with sql.transaction(self.conf) as session:
-            rule_ref = (session.query(Rule).filter_by(policy_id=policy_id,
+            try:
+                rule_ref = (session.query(Rule).filter_by(policy_id=p_id,
                                         service=serv,permission=perm).one())
-            if not rule_ref:
+            except:
                 raise exception.RuleNotFound(p_id=p_id, serv=serv, perm=perm)
         return rule_ref.to_dict()

@@ -390,7 +390,7 @@ class Enforcer(object):
             LOG.debug('Wrong execution path, Rule [%s] does not exist' % rule)
             result = False
 
-        # If it is False, raise the exception if requested
+        # If result is False, raise the exception provided
         if do_raise and not result:
             if exc:
                 raise exc(*args, **kwargs)
