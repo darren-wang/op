@@ -89,7 +89,7 @@ class DefaultRules(object):
             "update_policy": "role:domain_admin",
             "delete_policy": "role:domain_admin",
         # rule
-            "get_rule": "@",
+            "get_rule": "role:domain_admin",
             "list_rules": "@",
             "create_rule": "@",
             "update_rule": "@",

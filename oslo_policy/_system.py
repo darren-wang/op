@@ -91,7 +91,7 @@ class SystemRules(object):
             "update_policy": "scope:domain and scope_domain_id:%(obj.policy.domain_id)s",
             "delete_policy": "scope:domain and scope_domain_id:%(obj.policy.domain_id)s",
         # rule
-            "get_rule": "@",
+            "get_rule": "scope:domain and scope_domain_id:%(obj.policy.domain_id)s",
             "list_rules": "@",
             "create_rule": "@",
             "update_rule": "@",
