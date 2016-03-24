@@ -13,7 +13,8 @@ class SystemRules(object):
             # so if an action isn't found in this dict, it is in the charge
             # of RBAC enforcer.
         'keystone': {
-            "csp_domain": ("scope:domain and scope_domain_id:" + conf.oslo_policy.CSP_domain_id),
+            #"csp_domain": ("scope:domain and scope_domain_id:75d1e18c211e4822b4471e2d7d68da11"),
+            "csp_domain": ("scope:domain and scope_domain_id:"+conf.oslo_policy.CSP_domain_id),
         # region
             "list_regions": "rule:csp_domain",
             "get_region": "rule:csp_domain",

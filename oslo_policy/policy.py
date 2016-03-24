@@ -336,6 +336,8 @@ class Enforcer(object):
         self.conf = conf
         opts._register(conf)
         initialize(conf)
+        LOG.debug('\nCONF IS LIKE THIS\n')
+        LOG.debug(conf.oslo_policy.policy_connection)
 
         self.policy_api = sql.Backend(conf)
         
