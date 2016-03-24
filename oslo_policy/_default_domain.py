@@ -70,12 +70,7 @@ class DefaultRules(object):
             "revoke_grant": "role:domain_admin or role:project_admin",
         # role assignment
             "list_role_assignments": "role:domain_admin or role:project_admin",
-        # token
             "change_password": "role:domain_admin or user_id:%(obj.user.id)s",
-            "check_token": "",
-            "validate_token": "",
-            "revocation_list": "",
-            "revoke_token": "",
         # role
             "get_role": "role:domain_admin or role:project_admin",
             "list_roles": "role:domain_admin or role:project_admin",
@@ -94,11 +89,16 @@ class DefaultRules(object):
             "create_rule": "@",
             "update_rule": "@",
             "delete_rule": "@",
+        # token
+            "check_token": "@",
+            "validate_token": "@",
+            "revocation_list": "@",
+            "revoke_token": "@",
         # other
-            "get_auth_catalog": "",
-            "get_auth_projects": "",
-            "get_auth_domains": "",
-            "list_revoke_events": ""
+            "get_auth_catalog": "@",
+            "get_auth_projects": "@",
+            "get_auth_domains": "@",
+            "list_revoke_events": "@"
             },
         'glance': {
         # Glance Related
@@ -106,8 +106,8 @@ class DefaultRules(object):
             "delete_image": "role:domain_admin or role:project_admin",
             "get_image": "@",
             "get_images": "@",
-            "modify_image": "",
-            "publicize_image": "",
+            "modify_image": "@",
+            "publicize_image": "@",
             "download_image": "@",
             "upload_image": "scope:project and role:project_admin",
             "add_member": "",

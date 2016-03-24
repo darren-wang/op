@@ -74,10 +74,6 @@ class SystemRules(object):
             "list_role_assignments": "user_id:%(user.id)s or scope_domain_id:%(qStr.domain_id)s or scope_project_id:%(qStr.project_id)s",
         # token
             "change_password": "user_id:%(obj.user.id)s or (scope:domain and scope_domain_id:%(obj.user.domain_id)s)",
-            "check_token": "",
-            "validate_token": "",
-            "revocation_list": "",
-            "revoke_token": "",
         # role
             "get_role": "scope_domain_id:%(obj.role.domain_id)s",
             "list_roles": "scope_domain_id:%(qStr.domain_id)s",
@@ -96,14 +92,19 @@ class SystemRules(object):
             "create_rule": "@",
             "update_rule": "@",
             "delete_rule": "@",
+        # token
+            "check_token": "@",
+            "validate_token": "@",
+            "revocation_list": "@",
+            "revoke_token": "@",
         # other
-            "get_auth_catalog": "",
-            "get_auth_projects": "",
-            "get_auth_domains": "",
-            "list_revoke_events": ""
+            "get_auth_catalog": "@",
+            "get_auth_projects": "@",
+            "get_auth_domains": "@",
+            "list_revoke_events": "@"
             },
-        'glance': {
         # Glance Related
+        'glance': {
             "add_image": "scope:project",
             "delete_image": "scope_domain_id:%(obj.image.domain_id)s",
             "get_image": "scope_domain_id:%(obj.image.domain_id)s",
