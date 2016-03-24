@@ -105,6 +105,7 @@ class SystemRules(object):
             },
         # Glance Related
         'glance': {
+            "context_is_admin": "@",
             "add_image": "scope:project",
             "delete_image": "scope_domain_id:%(obj.image.domain_id)s",
             "get_image": "scope_domain_id:%(obj.image.domain_id)s",
