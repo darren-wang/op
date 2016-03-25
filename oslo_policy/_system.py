@@ -107,18 +107,12 @@ class SystemRules(object):
         'glance': {
             "context_is_admin": "@",
             "add_image": "scope:project",
-            "delete_image": "scope_domain_id:%(obj.image.domain_id)s",
-            "get_image": "scope_domain_id:%(obj.image.domain_id)s",
-            "get_images": "scope_project_id:%(qStr.project_id)s or (scope:domain and scope_domain_id:%(qStr.domain_id)s)",
-            "modify_image": "",
-            "publicize_image": "",
-            "download_image": "scope_domain_id:%(obj.image.domain_id)s",
-            "upload_image": "scope_domain_id:%(obj.image.domain_id)s",
-            "add_member": "",
-            "delete_member": "",
-            "get_member": "",
-            "get_members": "",
-            "modify_member": "",
-            "manage_image_cache": ""
+            "delete_image": "@",
+            "get_image": "@",
+            "get_images": "@",
+            "modify_image": "@",
+            "publicize_image": "@",
+            "download_image": "@",
+            "upload_image": "@"
             }
         }
