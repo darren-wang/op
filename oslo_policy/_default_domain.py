@@ -102,7 +102,7 @@ class DefaultRules(object):
             },
         # Glance Related
         'glance': {
-            "context_is_admin": "role:project_admin or role:domain_admin"
+            "context_is_admin": "role:project_admin or role:domain_admin",
             "add_image": "role:project_admin",
             "delete_image": "role:domain_admin or role:project_admin",
             "get_image": "@",
