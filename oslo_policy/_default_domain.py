@@ -63,11 +63,16 @@ class DefaultRules(object):
             "list_users_in_group": "role:domain_admin or role:project_admin",
             "list_projects_for_groups": "",
             "list_domains_for_groups": "",
-        # grant(it's very loose)
+        # grant
             "check_grant": "role:domain_admin or role:project_admin",
             "list_grants": "role:domain_admin or role:project_admin",
             "create_grant": "role:domain_admin or role:project_admin",
             "revoke_grant": "role:domain_admin or role:project_admin",
+        # system grant
+            "check_sys_grant": "@",
+            "list_sys_grants": "@",
+            "create_sys_grant": "@",
+            "revoke_sys_grant": "@",
         # role assignment
             "list_role_assignments": "role:domain_admin or role:project_admin",
             "change_password": "role:domain_admin or user_id:%(obj.user.id)s",
@@ -77,6 +82,12 @@ class DefaultRules(object):
             "create_role": "role:domain_admin",
             "update_role": "role:domain_admin",
             "delete_role": "role:domain_admin",
+        # system role
+            "get_sys_role": "@",
+            "list_sys_roles": "@",
+            "create_sys_role": "@",
+            "update_sys_role": "@",
+            "delete_sys_role": "@",
         # policy
             "get_policy": "role:domain_admin",
             "list_policies": "role:domain_admin",
@@ -106,17 +117,11 @@ class DefaultRules(object):
             "add_image": "role:project_admin",
             "delete_image": "role:project_admin",
             "get_image": "role:project_admin",
-            #"get_images": "role:project_admin or role:domain_admin",
+            "get_images": "role:project_admin or role:domain_admin",
             "get_images": "role:project_admin",
             "modify_image": "role:project_admin",
             "publicize_image": "role:project_admin",
             "download_image": "role:project_admin",
-            "upload_image": "role:project_admin",
-            "add_member": "",
-            "delete_member": "",
-            "get_member": "",
-            "get_members": "",
-            "modify_member": "",
-            "manage_image_cache": ""
+            "upload_image": "role:project_admin"
             }
         }

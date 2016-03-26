@@ -65,14 +65,18 @@ class SystemRules(object):
             "list_users_in_group": "scope_domain_id:%(obj.group.domain_id)s",
             "list_projects_for_groups": "",
             "list_domains_for_groups": "",
-        # grant(it's very loose)
+        # grant
             "check_grant": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(obj.domain.id)s or scope_domain_id:%(obj.project.domain_id)s))",
             "list_grants": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(obj.domain.id)s or scope_domain_id:%(obj.project.domain_id)s))",
             "create_grant": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(obj.domain.id)s or scope_domain_id:%(obj.project.domain_id)s))",
             "revoke_grant": "(scope_project_id:%(url.project_id)s) or (scope:domain and (scope_domain_id:%(obj.domain.id)s or scope_domain_id:%(obj.project.domain_id)s))",
+        # system grant 
+            "check_sys_grant": "@",
+            "list_sys_grants": "@",
+            "create_sys_grant": "@",
+            "revoke_sys_grant": "@",
         # role assignment
             "list_role_assignments": "user_id:%(user.id)s or scope_domain_id:%(qStr.domain_id)s or scope_project_id:%(qStr.project_id)s",
-        # token
             "change_password": "user_id:%(obj.user.id)s or (scope:domain and scope_domain_id:%(obj.user.domain_id)s)",
         # role
             "get_role": "scope_domain_id:%(obj.role.domain_id)s",
@@ -80,6 +84,12 @@ class SystemRules(object):
             "create_role": "scope:domain and scope_domain_id:%(reqBody.role.domain_id)s",
             "update_role": "scope:domain and scope_domain_id:%(obj.role.domain_id)s",
             "delete_role": "scope:domain and scope_domain_id:%(obj.role.domain_id)s",
+        # system role
+            "get_sys_role": "@",
+            "list_sys_roles": "@",
+            "create_sys_role": "@",
+            "update_sys_role": "@",
+            "delete_sys_role": "@",
         # policy
             "get_policy": "scope:domain and scope_domain_id:%(obj.policy.domain_id)s",
             "list_policies": "scope:domain and scope_domain_id:%(qStr.domain_id)s",
