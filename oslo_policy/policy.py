@@ -387,7 +387,7 @@ class Enforcer(object):
                 result = False
 
         else:
-            LOG.debug('Wrong execution path, Rule [%s] does not exist' % rule)
+            LOG.warning('Wrong execution path, Rule [%s] does not exist' % rule)
             result = False
 
         # If result is False, raise the exception provided
@@ -399,14 +399,14 @@ class Enforcer(object):
         return result
 
     def enforce(self, action, target, creds, check_type, **kwargs):
-        # System-level authorization 
+        # (DWang) System-level authorization 
         if check_type == 'system':
             return self._enforce(action, target, creds,
                                  rule_dict=self.sys_rules, **kwargs)
 
-        # Domain-level authorization
+        # (DWang) Domain-level authorization
         else:
-            # We can always get scope_domain_id from creds.
+            # (DWang) We can always get scope_domain_id from creds.
             domain_id = creds['scope_domain_id'] 
             p_ref = self.policy_api.get_enabled_policy_in_domain(domain_id)
             if p_ref:
@@ -414,20 +414,19 @@ class Enforcer(object):
                     r_dict = self.policy_api.get_rule(p_ref['id'],
                                                       action[0], action[1])
                     rule = _parser.parse_rule(r_dict['condition'])
-                    self._enforce(rule, target, creds, **kwargs)
+                    return self._enforce(rule, target, creds, **kwargs)
 
-                # Found enabled policy but no corresponding rule.
                 except exception.RuleNotFound:
-                    LOG.warning('Tenant domain has an enabled policy, but '
-                            'rule on target service and permission has not '
-                            'been specified. Using the default policy.')
-                    self._enforce(action, target, creds,
+                    LOG.debug('Tenant domain has an enabled policy, but rule'
+                              ' on target service and permission has not been'
+                              ' specified. Using the corresponding rule in'
+                              ' default policy.')
+                    return self._enforce(action, target, creds,
                                   rule_dict=self.dflt_rules, **kwargs)
 
-            # Found no enabled policy
             else:       
-                LOG.warning('Tenant domain has no enabled policy, using '
-                            'the default policy.')
-                self._enforce(action, target, creds,
+                LOG.debug('Tenant domain has no enabled policy. Using'
+                          ' the corresponding rule in default policy.')
+                return self._enforce(action, target, creds,
                               rule_dict=self.dflt_rules, **kwargs)
 
