@@ -400,12 +400,13 @@ class Enforcer(object):
 
     def enforce(self, action, target, creds, **kwargs):
         LOG.debug('Evaluating against System Authz Policy')
-        self._enforce(action, target, creds, rule_dict=self.sys_rules,
-                                                                    **kwargs)
+        sys_rst = self._enforce(action, target, creds, rule_dict=
+                                                self.sys_rules, **kwargs)
+        if not sys_rst:
+            return sys_rst
 
-        # (DWang) Domain-level authorization
-        # We can always get scope_domain_id from creds.
         LOG.debug('Evaluating against Domain Authz Policy')
+        # We can always get scope_domain_id from creds.
         domain_id = creds['scope_domain_id'] 
         p_ref = self.policy_api.get_enabled_policy_in_domain(domain_id)
         if p_ref:
