@@ -52,6 +52,7 @@ class SystemRules(object):
             "get_user": "rule:csp_domain or scope_domain_id:%(obj.user.domain_id)s",
             "update_user": "rule:csp_domain or (user_id:%(obj.user.id)s or (scope:domain and scope_domain_id:%(obj.user.domain_id)s))",
             "delete_user": "rule:csp_domain or (scope:domain and scope_domain_id:%(obj.user.domain_id)s)",
+            "change_password": "rule:csp_domain or (user_id:%(obj.user.id)s or (scope:domain and scope_domain_id:%(obj.user.domain_id)s))",
         # group
             "get_group": "rule:csp_domain or scope_domain_id:%(obj.group.domain_id)s",
             "list_groups": "rule:csp_domain or scope_domain_id:%(qStr.domain_id)s",
@@ -77,7 +78,6 @@ class SystemRules(object):
             "revoke_sys_grant": "@",
         # role assignment
             "list_role_assignments": "rule:csp_domain or (user_id:%(user.id)s or scope_domain_id:%(qStr.domain_id)s or scope_project_id:%(qStr.project_id)s)",
-            "change_password": "rule:csp_domain or (user_id:%(obj.user.id)s or (scope:domain and scope_domain_id:%(obj.user.domain_id)s))",
         # role
             "get_role": "rule:csp_domain or scope_domain_id:%(obj.role.domain_id)s",
             "list_roles": "rule:csp_domain or scope_domain_id:%(qStr.domain_id)s",

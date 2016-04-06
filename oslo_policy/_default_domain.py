@@ -50,6 +50,7 @@ class DefaultRules(object):
             "get_user": "",
             "update_user": "role:domain_admin or user_id:%(obj.user.id)s",
             "delete_user": "role:domain_admin",
+            "change_password": "role:domain_admin or user_id:%(obj.user.id)s",
         # group
             "get_group": "role:domain_admin or role:project_admin",
             "list_groups": "role:domain_admin or role:project_admin",
@@ -75,7 +76,6 @@ class DefaultRules(object):
             "revoke_sys_grant": "@",
         # role assignment
             "list_role_assignments": "role:domain_admin or role:project_admin",
-            "change_password": "role:domain_admin or user_id:%(obj.user.id)s",
         # role
             "get_role": "role:domain_admin or role:project_admin",
             "list_roles": "role:domain_admin or role:project_admin",
