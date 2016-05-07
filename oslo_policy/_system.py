@@ -8,6 +8,7 @@ class SystemRules(object):
         'keystone': {
         "csp_domain": ("scope:domain and scope_domain_id:"
                                         +conf.oslo_policy.CSP_domain_id),
+        'cru_check': 'rule:csp_domain',
         # region
         "list_regions": "rule:csp_domain",
         "get_region": "rule:csp_domain",

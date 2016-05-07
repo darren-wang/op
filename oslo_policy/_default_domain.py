@@ -7,6 +7,7 @@ class DefaultRules(object):
         self.dflt_rules = {
         'keystone': { 
         # region
+        'cru_check': 'role:cloud_admin',
         "list_regions": "role:domain_admin",
         "get_region": "role:domain_admin",
         "create_region": "role:domain_admin",
