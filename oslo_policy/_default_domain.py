@@ -6,13 +6,7 @@ class DefaultRules(object):
     def __init__(self):
         self.dflt_rules = {
         'keystone': { 
-        # region
         'cru_check': 'role:cloud_admin',
-        "list_regions": "role:domain_admin",
-        "get_region": "role:domain_admin",
-        "create_region": "role:domain_admin",
-        "update_region": "role:domain_admin",
-        "delete_region": "role:domain_admin",
         # service
         "list_services": "role:domain_admin",
         "get_service": "role:domain_admin",
@@ -103,16 +97,18 @@ class DefaultRules(object):
         "get_auth_catalog": "@",
         "get_auth_projects": "@",
         "get_auth_domains": "@",
-        "list_revoke_events": "@"},
+        "list_revoke_events": "@"
+        },
         # Glance related
         'glance': {
-        "context_is_admin": "role:domain_admin",
-        "add_image": "role:project_admin",
-        "delete_image": "role:project_admin",
-        "get_image": "role:project_admin",
-        "get_images": "role:project_admin",
-        "modify_image": "role:project_admin",
-        "publicize_image": "role:project_admin",
-        "download_image": "role:project_admin",
-        "upload_image": "role:project_admin"}
+        "add_image": "role:domain_admin",
+        "delete_image": "role:domain_admin",
+        "get_image": "role:domain_admin",
+        "get_images": "role:domain_admin",
+        "modify_image": "role:domain_admin",
+        "publicize_image": "role:domain_admin",
+        "download_image": "role:domain_admin",
+        "upload_image": "role:domain_admin",
+        "context_is_admin": "role:domain_admin"
         }
+    }

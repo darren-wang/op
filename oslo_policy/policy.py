@@ -407,7 +407,7 @@ class Enforcer(object):
 
         LOG.debug('Evaluating against Domain Authz Policy')
         # We can always get scope_domain_id from creds.
-        domain_id = creds['scope_domain_id'] 
+        domain_id = creds['domain_id'] 
         p_ref = self.policy_api.get_enabled_policy_in_domain(domain_id)
         if p_ref:
             try:
